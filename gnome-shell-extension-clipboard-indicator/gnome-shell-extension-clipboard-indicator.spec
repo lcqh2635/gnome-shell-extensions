@@ -130,22 +130,22 @@ fi
 
 # ==============================================================================
 # 1. 将 spec 文件放到正确位置
-# cp gnome-shell-extension-appmenu-is-back.spec ~/rpmbuild/SPECS/
+# cp gnome-shell-extension-clipboard-indicator.spec ~/rpmbuild/SPECS/
 # 2. 进入 SPECS 目录
 # cd ~/rpmbuild/SPECS/
 # 🔍 检查 spec 语法
-# rpmlint ~/rpmbuild/SPECS/gnome-shell-extension-appmenu-is-back.spec
+# rpmlint ~/rpmbuild/SPECS/gnome-shell-extension-clipboard-indicator.spec
 # 3. 下载源码到 SOURCES（spectool 会自动处理 Source0/1/2）
-# spectool -g -R gnome-shell-extension-appmenu-is-back.spec
+# spectool -g -R gnome-shell-extension-clipboard-indicator.spec
 # ✅ 验证源码是否下载成功
 # ls -lh ~/rpmbuild/SOURCES/ | grep add-to-desktop
 # 4. 生成 SRPM（源码 RPM）
-# rpmbuild -bs gnome-shell-extension-appmenu-is-back.spec
+# rpmbuild -bs gnome-shell-extension-clipboard-indicator.spec
 # ✅ 查看生成的 SRPM
 # ls -lh ~/rpmbuild/SRPMS/
 # 输出示例: gnome-shell-extension-add-to-desktop-16-1.fc44.src.rpm
 # 5. 直接生成本地 RPM
-# rpmbuild -bb gnome-shell-extension-appmenu-is-back.spec
+# rpmbuild -bb gnome-shell-extension-clipboard-indicator.spec
 # 或者将 .src.rpm 源码包编译成 .rpm 安装包
 # rpmbuild --rebuild ~/rpmbuild/SRPMS/gnome-shell-extension-add-to-desktop-16-1.fc44.src.rpm
 # 生成的 RPM 位置

@@ -28,7 +28,7 @@ Version:        41
 # 每次修改 Spec 文件但未升级软件版本时，递增此数字。
 Release:        1%{?dist}
 # 简短描述。出现在软件中心的列表中。
-Summary:        disables unredirect fullscreen on gnome-shell >= 48.0
+Summary:        Update indicator for Fedora. GNOME Shell extension.
 # 许可证类型。必须与源码中的 LICENSE 文件一致。
 License:        GPL-3.0-or-later
 # 项目主页 URL。
@@ -38,6 +38,7 @@ URL:            https://github.com/purejava/fedora-update
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 # 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
 # https://github.com/purejava/fedora-update/releases/download/v41/update-extension@purejava.org.shell-extension.zip
+# https://github.com/purejava/fedora-update/archive/refs/heads/main.zip
 Source0:        %{url}/releases/download/%{version}/%{uuid}.shell-extension.zip
 
 # ==============================================================================
@@ -71,7 +72,7 @@ BuildArch:      noarch
 # 4. 描述信息
 # ==============================================================================
 %description
-Adds Gtk4 icons to the Gnome desktop. Gtk4 Fork of the original Desktop Icons extension, with several enhancements.
+Update indicator for Fedora. GNOME Shell extension.
 
 # ==============================================================================
 # 3. 构建阶段 (Build Stages)
@@ -81,18 +82,30 @@ Adds Gtk4 icons to the Gnome desktop. Gtk4 Fork of the original Desktop Icons ex
 # 作用：解压源码，应用补丁
 # ------------------------------------------------------------------------------
 %prep
-# 在 ~/rpmbuild/BUILD 目录下创建 hidetopbar@mathieu.bidon.ca/ 并进入
+# 在 ~/rpmbuild/BUILD 目录下创建 update-extension@purejava.org/ 并进入
 # %{_builddir}		~/rpmbuild/BUILD		RPM 构建的根目录
 # %{buildsubdir}	%{name}-%{version}-build	由 %mkbuilddir 宏设置，用于构建隔离
-# %{uuid}		hidetopbar@mathieu.bidon.ca	你自定义的扩展 UUID
+# %{uuid}		update-extension@purejava.org	你自定义的扩展 UUID
 # -c：在当前目录（即 %{_builddir}/%{buildsubdir}）创建新目录 %{uuid}
-# -n "%{uuid}"：指定新目录的名称为 hidetopbar@mathieu.bidon.ca
+# -n "%{uuid}"：指定新目录的名称为 update-extension@purejava.org
 # 🔑 关键：-T 跳过 rpmuncompress，避免 tar 误解压 zip
 # 自动 cd：RPM 会自动 cd 进入这个新目录，后续 %build/%install 都在此执行
 %setup -q -c -n "%{uuid}" -T
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
-# 解压后产生嵌套：hidetopbar@mathieu.bidon.ca/hidetopbar-extensions.gnome.org-124/
+# 解压后产生嵌套：update-extension@purejava.org/hidetopbar-extensions.gnome.org-124/
 unzip -q -o %{SOURCE0} -d .
+
+# ------------------------------------------------------------------------------
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
+# 作用：编译源代码
+# ------------------------------------------------------------------------------
+%build
+# 对于 GNOME 扩展（纯 JS），通常不需要编译
+echo "编译阶段：开始编译源代码..."
+cd update-extension@purejava.org.shell-extension
+cp -r -p * ..
+cd ..
+rm -rf update-extension@purejava.org.shell-extension
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
