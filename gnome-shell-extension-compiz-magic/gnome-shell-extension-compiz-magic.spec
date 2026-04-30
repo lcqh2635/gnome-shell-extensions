@@ -80,16 +80,16 @@ Compiz alike magic lamp effect for GNOME Shell
 # 作用：解压源码，应用补丁
 # ------------------------------------------------------------------------------
 %prep
-# 在 ~/rpmbuild/BUILD 目录下创建 hidetopbar@mathieu.bidon.ca/ 并进入
+# 在 ~/rpmbuild/BUILD 目录下创建 compiz-alike-magic-lamp-effect@hermes83.github.com/ 并进入
 # %{_builddir}		~/rpmbuild/BUILD		RPM 构建的根目录
 # %{buildsubdir}	%{name}-%{version}-build	由 %mkbuilddir 宏设置，用于构建隔离
-# %{uuid}		hidetopbar@mathieu.bidon.ca	你自定义的扩展 UUID
+# %{uuid}		compiz-alike-magic-lamp-effect@hermes83.github.com	你自定义的扩展 UUID
 # -c：在当前目录（即 %{_builddir}/%{buildsubdir}）创建新目录 %{uuid}
-# -n "%{uuid}"：指定新目录的名称为 hidetopbar@mathieu.bidon.ca
+# -n "%{uuid}"：指定新目录的名称为 compiz-alike-magic-lamp-effect@hermes83.github.com
 # 自动 cd：RPM 会自动 cd 进入这个新目录，后续 %build/%install 都在此执行
 %setup -q -c -n "%{uuid}"
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
-# 解压后产生嵌套：hidetopbar@mathieu.bidon.ca/hidetopbar-extensions.gnome.org-124/
+# 解压后产生嵌套：compiz-alike-magic-lamp-effect@hermes83.github.com/compiz-alike-magic-lamp-effect-master/
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
@@ -114,9 +114,7 @@ rm -rf compiz-alike-magic-lamp-effect-master
 # %{_datadir} 通常是 /usr/share
 mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
 # 2. 复制所有扩展文件（排除不需要的构建产物）
-# 🔑 关键：从嵌套目录复制，而不是当前目录
-cp -r -p compiz-alike-magic-lamp-effect-master/* \
-  %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
+cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 # ✅ 如果有 schemas 目录，编译它
 if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
     glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
