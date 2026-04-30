@@ -23,7 +23,7 @@
 Name:           gnome-shell-extension-fedora-update
 # 版本号。
 # 建议通过自动化工具（如 Renovate）管理，保持与 GitHub Release 同步。
-Version:        41
+Version:        50
 # 发布版本。
 # 每次修改 Spec 文件但未升级软件版本时，递增此数字。
 Release:        1%{?dist}
@@ -37,9 +37,8 @@ URL:            https://github.com/purejava/fedora-update
 # 方式1：指向 Release (推荐)
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 # 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
-# https://github.com/purejava/fedora-update/releases/download/v41/update-extension@purejava.org.shell-extension.zip
 # https://github.com/purejava/fedora-update/archive/refs/heads/main.zip
-Source0:        %{url}/releases/download/%{version}/%{uuid}.shell-extension.zip
+Source0:        %{url}/archive/refs/heads/main.zip
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
