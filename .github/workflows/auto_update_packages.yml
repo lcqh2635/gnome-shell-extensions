@@ -1,0 +1,59 @@
+name: Auto Update Packages
+on:
+  schedule:
+    # Runs every three hours at 01:00, 04:00, 07:00, 10:00, 13:00, 16:00, 19:00, and 22:00 UTC daily.
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+env:
+  # 提前开启 Node.js 24 支持，消除旧版本警告
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-all:
+    runs-on: ubuntu-latest
+    strategy:
+      # 在这里列出所有你想监控的软件
+      matrix:
+        include:
+          - name: "clash-verge-rev"
+            upstream: "clash-verge-rev/clash-verge-rev"
+        #   - name: "ghostty"
+        #     upstream: "mitchellh/ghostty"
+          # add repo
+          
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. 拿版本（这里拿到的可能是 v2.4.7）
+      - name: Get Version for ${{ matrix.name }}
+        uses: pozetroninc/github-action-get-latest-release@master
+        id: upstream
+        with:
+          repository: ${{ matrix.upstream }}
+
+      # 1.5 去掉开头的 v
+      - name: Clean Version String
+        id: clean
+        run: |
+          RAW_VER="${{ steps.upstream.outputs.release }}"
+          # 利用 Bash 的参数消除功能，去掉开头的 v（如果存在的话）
+          CLEAN_VER="${RAW_VER#v}"
+          echo "version=$CLEAN_VER" >> $GITHUB_OUTPUT
+
+      # 2. 找并换（注意：这里改用 steps.clean.outputs.version）
+      - name: Update Spec for ${{ matrix.name }}
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: "Version:.*"
+          replace: "Version:        ${{ steps.clean.outputs.version }}"
+          include: "${{ matrix.name }}/*.spec"
+
+      # 3. 提交变动
+      - name: Commit Change for ${{ matrix.name }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(${{ matrix.name }}): bump to ${{ steps.clean.outputs.version }}"

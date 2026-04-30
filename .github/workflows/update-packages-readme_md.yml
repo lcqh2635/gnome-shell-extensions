@@ -1,0 +1,60 @@
+name: 'Update packages README.md'
+
+on:
+  push:
+    paths:
+      - '**/packages/**/*.spec'
+
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  update-packages-readme_md:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      GITHUB_TOKEN: "${{ secrets.TOKEN }}"
+
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository }}"
+
+      - name: 'Install Nix'
+        uses: cachix/install-nix-action@v31
+
+      - name: 'Update README.md in packages directory'
+        shell: bash
+        run: |
+          BOLD_GREEN='\e[1;32m'
+          echo -e "${BOLD_GREEN}Creating a new environment with helper programs"
+          echo "> nix develop -c bash -c 'source ./scripts/setup-python-env.sh && ./scripts/generate-pkg-list-readme'"
+          nix develop -c bash -c 'source ./scripts/setup-python-env.sh && ./scripts/generate-pkg-list-readme'
+
+      - name: 'Commit changes'
+        shell: bash
+        run: |
+          echo "> USERNAME='github-actions[bot]'"
+          USERNAME='github-actions[bot]'
+          echo "> EMAIL='41898282+github-actions[bot]@users.noreply.github.com'"
+          EMAIL='41898282+github-actions[bot]@users.noreply.github.com'
+          echo '> git config --local user.name "$USERNAME"'
+          git config --local user.name "$USERNAME"
+          echo '> git config --local user.email "$EMAIL"'
+          git config --local user.email "$EMAIL"
+          echo '> git add -u'
+          git add -u
+
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "> git commit -m 'bot: Updated \`packages/README.md\`'"
+            git commit -m 'bot: Updated `packages/README.md`'
+          fi
+
+      - name: 'Push changes'
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: "${{ env.GITHUB_TOKEN }}"
+          branch: "${{ github.ref }}"

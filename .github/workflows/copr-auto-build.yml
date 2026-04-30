@@ -1,0 +1,206 @@
+# 工作流名称：每日自动追踪上游软件版本并自动更新 Spec 版本 & 触发 Fedora Copr 构建
+name: Daily Auto Update Spec & Trigger Copr Build
+
+# 🔐 声明工作流所需的最小权限（安全最佳实践）
+permissions:
+  contents: write  # 允许读写仓库内容（推送提交、创建/删除分支、打标签、修改文件等）
+
+# ================= GitHub Actions 工作流触发条件 =================
+on:
+  # 1. 定时触发：每天 UTC 14:00（北京时间 22:00）执行
+  schedule:
+    - cron: '0 14 * * *'
+  # 2. 手动触发：方便调试或紧急更新
+  workflow_dispatch:
+
+# ================= GitHub Actions 工作流任务 =================
+jobs:
+  # =================================================================
+  # 任务 1：check-and-update | 检查上游版本并更新本地 Spec 文件
+  # =================================================================
+  # 【核心职责】
+  #   1. 读取 upstream_packages.yaml 配置清单，获取本地 Spec 与上游仓库的映射
+  #   2. 调用 GitHub REST API 获取各项目的最新 Release 或 Tag
+  #   3. 使用 PEP 440 语义化版本规则与本地 .spec 中的 Version 字段进行精准比对
+  #   4. 若发现新版本，自动更新 Spec 的 Version 并重置 Release 为 1（符合 Fedora 规范）
+  #   5. 将变更安全提交至当前分支（提交信息含 [skip ci]，防止 Actions 无限循环触发）
+  #
+  # 【输出变量】(供下游任务通过 needs.<job_id>.outputs 消费)
+  #   - has_updates: 布尔值 (true/false)，标识是否检测到新版本并完成了文件更新
+  #   - updated_list: 字符串，以逗号分隔的已更新 Spec 文件相对路径列表
+  # =================================================================
+  check-and-update:
+    name: 检查上游版本并更新 Spec
+    runs-on: ubuntu-latest
+    # 输出变量，供下游任务判断是否需要构建
+    outputs:
+      has_updates: ${{ steps.check.outputs.has_updates }}
+      updated_list: ${{ steps.check.outputs.updated_list }}
+
+    steps:
+      - name: 检出仓库代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 检查上游版本并批量更新
+        id: check
+        env:
+          # 使用 GITHUB_TOKEN 提高 API 请求限额（公共仓库每小时 1000 次）
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 安装依赖：packaging 用于精准语义化版本比较，pyyaml 用于读取配置
+          pip3 install packaging pyyaml > /dev/null 2>&1
+
+          # 执行核心检查脚本
+          python3 << 'PYTHON_SCRIPT'
+          import os, json, re, urllib.request
+          import yaml
+          from packaging.version import Version, InvalidVersion
+
+          CONFIG_FILE = "upstream_packages.yaml"
+          if not os.path.exists(CONFIG_FILE):
+              print("⚠️ 未找到 upstream_packages.yaml，请配置上游软件映射表。")
+              exit(0)
+
+          with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+              config = yaml.safe_load(f)
+
+          updated_specs = []
+          token = os.environ.get("GITHUB_TOKEN", "")
+          headers = {
+              "Authorization": f"token {token}",
+              "Accept": "application/vnd.github.v3+json"
+          }
+
+          for pkg in config.get("packages", []):
+              spec_path = pkg["spec"]
+              upstream = pkg["upstream"]  # 格式: owner/repo
+
+              # 1. 读取当前 spec 中的 Version
+              try:
+                  with open(spec_path, 'r', encoding='utf-8') as sf:
+                      spec_content = sf.read()
+                  match = re.search(r'^Version:\s*(.+)', spec_content, re.MULTILINE)
+                  if not match:
+                      print(f"❌ {spec_path} 缺少 Version 字段，跳过。")
+                      continue
+                  current_ver = match.group(1).strip()
+              except FileNotFoundError:
+                  print(f"❌ 找不到文件 {spec_path}，跳过。")
+                  continue
+
+              # 2. 获取上游最新版本（优先 Release，无 Release 则取最新 Tag）
+              latest_ver = None
+              try:
+                  # 尝试获取最新 Release
+                  req = urllib.request.Request(f"https://api.github.com/repos/{upstream}/releases/latest", headers=headers)
+                  with urllib.request.urlopen(req) as res:
+                      data = json.loads(res.read())
+                      latest_ver = data.get("tag_name", "").lstrip("v")
+              except Exception:
+                  # 降级：获取最新 Tag
+                  try:
+                      req_tag = urllib.request.Request(f"https://api.github.com/repos/{upstream}/tags?per_page=1", headers=headers)
+                      with urllib.request.urlopen(req_tag) as res:
+                          tags = json.loads(res.read())
+                          if tags:
+                              latest_ver = tags[0]["name"].lstrip("v")
+                  except Exception as e:
+                      print(f"⚠️ 无法获取 {upstream} 版本信息: {e}")
+
+              if not latest_ver:
+                  continue
+
+              # 3. 版本比对
+              try:
+                  if Version(latest_ver) > Version(current_ver):
+                      print(f"🆕 发现新版本: {spec_path} ({current_ver} -> {latest_ver})")
+                      # 替换 Version
+                      spec_content = re.sub(r'^(Version:\s*).+', rf'\g<1>{latest_ver}', spec_content, flags=re.MULTILINE)
+                      # 重置 Release 为 1（符合 Fedora 打包规范）
+                      spec_content = re.sub(r'^(Release:\s*).+', r'\g<1>1', spec_content, flags=re.MULTILINE)
+                      
+                      with open(spec_path, 'w', encoding='utf-8') as sf:
+                          sf.write(spec_content)
+                      updated_specs.append(spec_path)
+                  else:
+                      print(f"✅ {spec_path}: 已是最新 ({current_ver})")
+              except InvalidVersion:
+                  print(f"⚠️ 版本格式无法解析，跳过: {current_ver} vs {latest_ver}")
+
+          # 4. 输出结果供 GitHub Actions 使用
+          has_updates = "true" if updated_specs else "false"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"has_updates={has_updates}\n")
+              # 使用逗号分隔的字符串传递更新的 spec 列表
+              out.write(f"updated_list={','.join(updated_specs)}\n")
+          PYTHON_SCRIPT
+
+      - name: 提交 Spec 版本更新
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add *.spec
+          git commit -m "chore(specs): 自动同步上游最新版本 [skip ci]"
+          git push origin ${{ github.ref_name }}
+          echo "📤 已推送更新到默认分支"
+
+  # =================================================================
+  # 任务 2：trigger-copr-build | 提交更新后的 Spec 至 Copr 构建队列
+  # =================================================================
+  # 【核心职责】
+  #   依赖任务 1 的执行结果。仅当检测到上游有新版本且 Spec 文件已成功更新推送时，
+  #   才会被触发。它将调用 copr-cli 将更新后的仓库代码提交给 Fedora Copr 进行 SRPM 构建。
+  #
+  # 【触发条件】
+  #   if: needs.check-and-update.outputs.has_updates == 'true'
+  #   （无新版本时直接跳过，节省 Copr 构建额度与 Actions 运行时间）
+  #
+  # 【注意事项】
+  #   Copr 会根据 --url 自动克隆仓库主分支，因此需确保 Spec 中的 Source0 
+  #   使用 %{version} 宏，且上游 Release 资产命名与下载 URL 模式匹配。
+  # =================================================================
+  trigger-copr-build:
+    name: 提交更新后的 Spec 至 Copr
+    needs: check-and-update
+    # 仅在有实际更新时执行，节省 Copr 构建资源
+    if: needs.check-and-update.outputs.has_updates == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出最新代码
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: 安装 Copr CLI
+        run: pip3 install --upgrade copr-cli
+
+      - name: 配置 Copr 认证凭据
+        run: |
+          mkdir -p ~/.config
+          cat > ~/.config/copr << EOF
+          [copr-cli]
+          username = ${{ secrets.COPR_USERNAME }}
+          token = ${{ secrets.COPR_TOKEN }}
+          coprs_url = https://copr.fedorainfracloud.org
+          EOF
+          chmod 600 ~/.config/copr
+          echo "🔑 Copr 认证配置完成"
+
+      - name: 提交构建任务
+        run: |
+          UPDATED_CSV="${{ needs.check-and-update.outputs.updated_list }}"
+          # 遍历更新的 spec 文件并逐一提交构建
+          IFS=',' read -ra SPECS <<< "$UPDATED_CSV"
+          for spec in "${SPECS[@]}"; do
+            echo "🚀 正在提交 Copr 构建: $spec"
+            copr-cli build \
+              --nowait \
+              --url "https://github.com/${{ github.repository }}" \
+              --spec "$spec" \
+              "@${{ secrets.COPR_USERNAME }}/${{ vars.COPR_PROJECT }}" 2>&1 || \
+              echo "⚠️ 提交 $spec 失败，请检查 Copr 项目权限或网络。"
+          done
+          echo "✅ 所有更新的 Spec 已提交至 Copr 队列"
