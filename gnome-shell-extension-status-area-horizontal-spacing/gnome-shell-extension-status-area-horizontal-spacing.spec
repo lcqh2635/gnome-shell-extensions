@@ -165,5 +165,5 @@ fi
     # nautilus admin:/usr/share/gnome-shell/extensions
 
 # 启用扩展（需重启 GNOME Shell 或按 Alt+F2 输入 'r'）
-# gnome-extensions enable add-to-desktop@tommimon.github.com
+# gnome-extensions enable status-area-horizontal-spacing@mathematical.coffee.gmail.com
 # ==============================================================================

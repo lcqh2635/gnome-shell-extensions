@@ -37,8 +37,8 @@ URL:            https://github.com/Tudmotu/gnome-shell-extension-clipboard-indic
 # 方式1：指向 Release (推荐)
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 # 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
-# https://github.com/Tudmotu/gnome-shell-extension-clipboard-indicator.git
-Source0:        %{url}/archive/refs/tags/v%{version}.zip
+# https://github.com/Tudmotu/gnome-shell-extension-clipboard-indicator/archive/refs/heads/master.zip
+Source0:        %{url}/archive/refs/heads/master.zip
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
@@ -70,9 +70,7 @@ BuildArch:      noarch
 # 4. 描述信息
 # ==============================================================================
 %description
-Copyous 是一个专为 GNOME 桌面设计的现代化剪贴板管理器。
-它允许用户保存复制历史，快速搜索并重新粘贴之前的内容，
-极大地提升了办公效率。
+The most popular clipboard manager for GNOME, with over 2M downloads
 
 # ==============================================================================
 # 3. 构建阶段 (Build Stages)
@@ -93,6 +91,18 @@ Copyous 是一个专为 GNOME 桌面设计的现代化剪贴板管理器。
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
 # 解压后产生嵌套：hidetopbar@mathieu.bidon.ca/hidetopbar-extensions.gnome.org-124/
 unzip -q -o %{SOURCE0} -d .
+
+# ------------------------------------------------------------------------------
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
+# 作用：编译源代码
+# ------------------------------------------------------------------------------
+%build
+# 对于 GNOME 扩展（纯 JS），通常不需要编译
+echo "编译阶段：开始编译源代码..."
+cd gnome-shell-extension-clipboard-indicator-master
+cp -r -p * ..
+cd ..
+rm -rf gnome-shell-extension-clipboard-indicator-master
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
