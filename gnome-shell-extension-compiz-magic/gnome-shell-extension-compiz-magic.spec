@@ -93,12 +93,17 @@ Compiz alike magic lamp effect for GNOME Shell
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
-# %build - 编译阶段
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
 # 作用：编译源代码
 # ------------------------------------------------------------------------------
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
-# zip.sh
+echo "编译阶段：开始编译源代码..."
+cd compiz-alike-magic-lamp-effect-master
+./zip.sh
+unzip %{uuid}.zip -d ..
+cd ..
+rm -rf compiz-alike-magic-lamp-effect-master
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
