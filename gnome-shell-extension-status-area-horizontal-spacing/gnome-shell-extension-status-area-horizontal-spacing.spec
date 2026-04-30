@@ -23,12 +23,12 @@
 Name:           gnome-shell-extension-status-area-horizontal-spacing
 # 版本号。
 # 建议通过自动化工具（如 Renovate）管理，保持与 GitHub Release 同步。
-Version:        2.9.3
+Version:        49
 # 发布版本。
 # 每次修改 Spec 文件但未升级软件版本时，递增此数字。
 Release:        1%{?dist}
 # 简短描述。出现在软件中心的列表中。
-Summary:        disables unredirect fullscreen on gnome-shell >= 48.0
+Summary:        A GNOME shell extension that reduces the horizontal spacing between icons/indicators in the status area.
 # 许可证类型。必须与源码中的 LICENSE 文件一致。
 License:        GPL-3.0-or-later
 # 项目主页 URL。
@@ -37,8 +37,8 @@ URL:            https://gitlab.com/p91paul/status-area-horizontal-spacing-gnome-
 # 方式1：指向 Release (推荐)
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 # 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
-# https://gitlab.com/p91paul/status-area-horizontal-spacing-gnome-shell-extension/-/archive/v2.9.3/status-area-horizontal-spacing-gnome-shell-extension-v2.9.3.zip
-Source0:        %{url}/-/archive/v%{version}/status-area-horizontal-spacing-gnome-shell-extension-%{version}.zip
+# https://gitlab.com/p91paul/status-area-horizontal-spacing-gnome-shell-extension/-/archive/master/status-area-horizontal-spacing-gnome-shell-extension-master.zip
+Source0:        %{url}/-/archive/master/status-area-horizontal-spacing-gnome-shell-extension-master.zip
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
@@ -71,7 +71,7 @@ BuildArch:      noarch
 # 4. 描述信息
 # ==============================================================================
 %description
-Adds Gtk4 icons to the Gnome desktop. Gtk4 Fork of the original Desktop Icons extension, with several enhancements.
+A GNOME shell extension that reduces the horizontal spacing between icons/indicators in the status area.
 
 # ==============================================================================
 # 3. 构建阶段 (Build Stages)
@@ -93,6 +93,14 @@ Adds Gtk4 icons to the Gnome desktop. Gtk4 Fork of the original Desktop Icons ex
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
 # 解压后产生嵌套：hidetopbar@mathieu.bidon.ca/hidetopbar-extensions.gnome.org-124/
 unzip -q -o %{SOURCE0} -d .
+
+# ------------------------------------------------------------------------------
+# %build - 编译阶段
+# 作用：编译源代码
+# ------------------------------------------------------------------------------
+%build
+# 对于 GNOME 扩展（纯 JS），通常不需要编译
+# zip.sh
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
