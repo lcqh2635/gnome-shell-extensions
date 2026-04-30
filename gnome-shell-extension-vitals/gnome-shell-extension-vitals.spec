@@ -14,7 +14,7 @@
 # 禁用默认的 debuginfo 包生成，因为扩展通常不需要调试符号
 %global debug_package %{nil}
 # 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
-%global uuid weatheroclock@CleoMenezesJr.github.io
+%global uuid Vitals@CoreCoding.com
 
 # ==============================================================================
 # 2. 包基本信息 (Header)
@@ -23,22 +23,22 @@
 Name:           gnome-shell-extension-vitals
 # 版本号。
 # 建议通过自动化工具（如 Renovate）管理，保持与 GitHub Release 同步。
-Version:        50.2
+Version:        76.0.0
 # 发布版本。
 # 每次修改 Spec 文件但未升级软件版本时，递增此数字。
 Release:        1%{?dist}
 # 简短描述。出现在软件中心的列表中。
-Summary:        Display the current weather inside the pill next to the clock.
+Summary:        A glimpse into your computer's temperature, voltage, fan speed, memory usage and CPU load.
 # 许可证类型。必须与源码中的 LICENSE 文件一致。
 License:        GPL-3.0-or-later
 # 项目主页 URL。
-URL:            https://github.com/icedman/search-light
+URL:            https://github.com/corecoding/Vitals
 # 源代码压缩包。可以指向 GitHub 的 Release 或直接使用克隆的源码
 # 方式1：指向 Release (推荐)
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 # 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
-# https://github.com/icedman/search-light/archive/refs/heads/main.zip
-Source0:        %{url}/archive/refs/heads/main.zip
+# https://github.com/corecoding/Vitals/releases/download/v76.0.0/vitals.zip
+Source0:        %{url}/releases/download/v%{version}/vitals.zip
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
@@ -66,7 +66,9 @@ BuildArch:      noarch
 # 4. 描述信息
 # ==============================================================================
 %description
-Display the current weather inside the pill next to the clock.
+A glimpse into your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats. 
+This is a one stop shop to monitor all of your vital sensors. Uses asynchronous polling to provide a smooth user experience. Feature requests or bugs? Please use GitHub.",
+
 
 # ==============================================================================
 # 3. 构建阶段 (Build Stages)
@@ -90,12 +92,13 @@ Display the current weather inside the pill next to the clock.
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
-# %build - 编译阶段
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
 # 作用：编译源代码
 # ------------------------------------------------------------------------------
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
-make publish
+echo "编译阶段：开始编译源代码..."
+
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
@@ -107,7 +110,7 @@ make publish
 mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
 # 2. 复制所有扩展文件（排除不需要的构建产物）
 # 🔑 关键：从嵌套目录复制，而不是当前目录
-cp -r -p %{uuid}/* %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
+cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 # ✅ 如果有 schemas 目录，编译它
 if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
     glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
