@@ -101,10 +101,10 @@ unzip -q -o %{SOURCE0} -d .
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
 echo "编译阶段：开始编译源代码..."
-cd main/fedora-update-main
-cp -r -p * ../../
+cd fedora-update-main
+cp -r -p * ..
 cd ..
-rm -rf main
+rm -rf fedora-update-main
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
