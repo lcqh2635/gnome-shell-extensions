@@ -125,14 +125,10 @@ fi
 # rpmbuild -bs gnome-shell-extension-add-to-desktop.spec
 # ✅ 查看生成的 SRPM
 # ls -lh ~/rpmbuild/SRPMS/
-# 输出示例: gnome-shell-extension-add-to-desktop-16-1.fc44.src.rpm
 # 5. 直接生成本地 RPM
 # rpmbuild -bb gnome-shell-extension-add-to-desktop.spec
-# 或者将 .src.rpm 源码包编译成 .rpm 安装包
-# rpmbuild --rebuild ~/rpmbuild/SRPMS/gnome-shell-extension-add-to-desktop-16-1.fc44.src.rpm
 # 生成的 RPM 位置
 # ls -lh ~/rpmbuild/RPMS/noarch/
-# 输出: gnome-shell-extension-add-to-desktop-16-1.fc44.noarch.rpm
 # 安装测试
 # sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-add-to-desktop-16-1.fc44.noarch.rpm
 # sudo dnf remove -y gnome-shell-extension-add-to-desktop
