@@ -4,8 +4,8 @@
 # 工作流适配：Version 更新后，Source0 自动指向 v{version} 对应的归档
 # Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/architektapx/zen-browser/
 # 参考文件 https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
-# 源代码仓库 https://github.com/CleoMenezesJr/weather-oclock
-# git clone --depth=1 https://github.com/CleoMenezesJr/weather-oclock.git
+# 源代码仓库 https://github.com/Rayzeq/quick-settings-audio-panel
+# git clone --depth=1 https://github.com/Rayzeq/quick-settings-audio-panel.git
 # ==============================================================================
 
 # ==============================================================================
@@ -14,7 +14,7 @@
 # 禁用默认的 debuginfo 包生成，因为扩展通常不需要调试符号
 %global debug_package %{nil}
 # 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
-%global uuid weatheroclock@CleoMenezesJr.github.io
+%global uuid quick-settings-audio-panel@rayzeq.github.io
 
 # ==============================================================================
 # 2. 包基本信息 (Header)
@@ -23,22 +23,22 @@
 Name:           gnome-shell-extension-quick-settings-audio-panel
 # 版本号。
 # 建议通过自动化工具（如 Renovate）管理，保持与 GitHub Release 同步。
-Version:        50.2
+Version:        102
 # 发布版本。
 # 每次修改 Spec 文件但未升级软件版本时，递增此数字。
 Release:        1%{?dist}
 # 简短描述。出现在软件中心的列表中。
-Summary:        Display the current weather inside the pill next to the clock.
+Summary:        An gnome shell extension to add a new panel to the Quick Settings for sound related stuff
 # 许可证类型。必须与源码中的 LICENSE 文件一致。
 License:        GPL-3.0-or-later
 # 项目主页 URL。
-URL:            https://github.com/CleoMenezesJr/weather-oclock
+URL:            https://github.com/Rayzeq/quick-settings-audio-panel
 # 源代码压缩包。可以指向 GitHub 的 Release 或直接使用克隆的源码
 # 方式1：指向 Release (推荐)
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 # 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
-# https://github.com/CleoMenezesJr/weather-oclock/archive/refs/heads/main.zip
-Source0:        %{url}/archive/refs/heads/main.zip
+# https://github.com/Rayzeq/quick-settings-audio-panel/releases/download/v102/quick-settings-audio-panel@rayzeq.github.io.shell-extension.zip
+Source0:        %{url}/releases/download/v%{version}/%{uuid}.shell-extension.zip
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
@@ -96,10 +96,10 @@ unzip -q -o %{SOURCE0} -d .
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
 echo "编译阶段：开始编译源代码..."
-cd weather-oclock-main
-cp -r -p %{uuid}/* ..
+cd quick-settings-audio-panel@rayzeq.github.io.shell-extension
+cp -r -p * ..
 cd ..
-rm -rf weather-oclock-main
+rm -rf quick-settings-audio-panel@rayzeq.github.io.shell-extension
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
@@ -128,26 +128,26 @@ fi
 
 # ==============================================================================
 # 1. 将 spec 文件放到正确位置
-# cp gnome-shell-extension-weather-oclock.spec ~/rpmbuild/SPECS/
+# cp gnome-shell-extension-quick-settings-audio-panel.spec ~/rpmbuild/SPECS/
 # 2. 进入 SPECS 目录
 # cd ~/rpmbuild/SPECS/
 # 🔍 检查 spec 语法
-# rpmlint ~/rpmbuild/SPECS/gnome-shell-extension-weather-oclock.spec
+# rpmlint ~/rpmbuild/SPECS/gnome-shell-extension-quick-settings-audio-panel.spec
 # 3. 下载源码到 SOURCES（spectool 会自动处理 Source0/1/2）
-# spectool -g -R gnome-shell-extension-weather-oclock.spec
+# spectool -g -R gnome-shell-extension-quick-settings-audio-panel.spec
 # ✅ 验证源码是否下载成功
 # ls -lh ~/rpmbuild/SOURCES/ | grep add-to-desktop
 # 4. 生成 SRPM（源码 RPM）
-# rpmbuild -bs gnome-shell-extension-weather-oclock.spec
+# rpmbuild -bs gnome-shell-extension-quick-settings-audio-panel.spec
 # ✅ 查看生成的 SRPM
 # ls -lh ~/rpmbuild/SRPMS/
 # 5. 直接生成本地 RPM
-# rpmbuild -bb gnome-shell-extension-weather-oclock.spec
+# rpmbuild -bb gnome-shell-extension-quick-settings-audio-panel.spec
 # 生成的 RPM 位置
 # ls -lh ~/rpmbuild/RPMS/noarch/
 # 安装测试
-# sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-weather-oclock-*.fc44.noarch.rpm
-# sudo dnf remove -y gnome-shell-extension-weather-oclock
+# sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-quick-settings-audio-panel-*.fc44.noarch.rpm
+# sudo dnf remove -y gnome-shell-extension-quick-settings-audio-panel
 # gnome-session-quit --logout
 
     # dnf list gnome-shell-extension*
@@ -161,5 +161,5 @@ fi
     # nautilus admin:/usr/share/gnome-shell/extensions
 
 # 启用扩展（需重启 GNOME Shell 或按 Alt+F2 输入 'r'）
-# gnome-extensions enable add-to-desktop@tommimon.github.com
+# gnome-extensions enable quick-settings-audio-panel@rayzeq.github.io
 # ==============================================================================
