@@ -35,6 +35,7 @@ gnome-shell-extension-customize-ibus \
 gnome-shell-extension-ddterm \
 gnome-shell-extension-desktop-icons-ng \
 gnome-shell-extension-disable-unredirect \
+gnome-shell-extension-fedora-update \
 gnome-shell-extension-hide-top-bar \
 gnome-shell-extension-night-theme-switcher \
 gnome-shell-extension-quick-settings-tweaks \

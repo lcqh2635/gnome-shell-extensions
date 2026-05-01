@@ -1,16 +1,21 @@
-# Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/gierth/tools-misc/
+# ==============================================================================
+# 场景二：上游提供源码压缩包（标准源码构建）
+# 适用条件：GitHub Releases 提供 .tar.gz / .zip 源码包
+# 工作流适配：Version 更新后，Source0 自动指向 v{version} 对应的归档
+# Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/lcqh2635/gnome-shell-extensions
 # 参考文件 https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
-# 源代码仓库 https://github.com/boerdereinar/copyous
-# git clone --depth=1 https://github.com/boerdereinar/copyous.git
-
+# 官方网站 https://mattjakeman.com/apps/extension-manager
+# 源代码仓库 https://github.com/mjakeman/extension-manager
+# git clone --depth=1 https://github.com/mjakeman/extension-manager.git
+# ==============================================================================
 
 # ==============================================================================
 # 1. 宏定义与全局设置
 # ==============================================================================
-%global         fullname postman
-%global         app_name Postman
-%global         real_version 12.4.2
-
+# 禁用默认的 debuginfo 包生成，因为扩展通常不需要调试符号
+%global debug_package %{nil}
+# 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
+%global uuid rounded-window-corners@fxgn
 
 # ==============================================================================
 # 2. 包基本信息 (Header)
@@ -34,9 +39,6 @@ URL:            https://github.com/mjakeman/extension-manager
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 # https://github.com/mjakeman/extension-manager/archive/refs/tags/v0.6.5.zip
 Source0:        %{url}/archive/refs/tags/v%{version}.zip
-# 方式2：使用本地克隆目录打包（用于测试）
-# Source0: %{name}-%{version}.tar.gz
-
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
@@ -46,6 +48,7 @@ Source0:        %{url}/archive/refs/tags/v%{version}.zip
 # 这是必须的，因为我们需要在打包时或安装时编译 GSettings 的 XML 模式文件。
 # gnome-shell-devel: 提供 GNOME Shell 的开发宏和头文件。
 # 虽然不是所有扩展都严格需要，但加上它可以确保环境一致性。
+BuildRequires:    git
 BuildRequires:    meson gcc blueprint-compiler desktop-file-utils libappstream-glib
 BuildRequires:    pkgconfig(gtk4) pkgconfig(libadwaita-1) pkgconfig(libsoup-3.0) pkgconfig(json-glib-1.0)
 # --- 运行依赖 (Requires) 用户安装此包时必须存在的软件 ---
@@ -57,84 +60,6 @@ Requires:       gtk4 libadwaita
 BuildArch:      noarch
 # 强制该软件包只能在 64 位 Intel/AMD 架构的机器上安装和构建
 ExclusiveArch:  x86_64
-
-
-%description
-Postman is an API platform for building and using APIs.
-Postman simplifies each step of the API lifecycle and
-streamlines collaboration so you can create better APIs faster.
-
-
-# ==============================================================================
-# 3. 构建阶段 (Build Stages)
-# ==============================================================================
-# ------------------------------------------------------------------------------
-# %prep - 准备阶段
-# 作用：解压源码，应用补丁
-# ------------------------------------------------------------------------------
-%prep
-# -----------------------------------------------------------
-# %autosetup 详解
-# -----------------------------------------------------------
-# -n myapp-1.0 : 指定解压后的目录名。
-#                如果源码包解压出的目录名和 %{name}-%{version} 不一致，必须用这个参数。
-#
-# -p1          : 指定打补丁时的层级（strip level）。
-#                通常对应 git diff 或 diff -u 生成的补丁，默认就是 -p1。
-#                如果不写，它通常会尝试自动检测。
-#
-# 作用：
-# 1. 自动解压 Source0 (myapp-1.0.tar.gz)
-# 2. 自动进入解压后的目录
-# 3. 自动应用 Patch0 和 Patch1
-# -----------------------------------------------------------
-%autosetup
-
-# ------------------------------------------------------------------------------
-# %build - 编译阶段
-# 作用：编译源代码
-# ------------------------------------------------------------------------------
-%build
-# 对于 GNOME 扩展（纯 JS），通常不需要编译
-# 如果是 C/C++ 项目，这里通常是:
-# %configure
-# make %{?_smp_mflags}
-
-# ------------------------------------------------------------------------------
-# %install - 安装阶段
-# 作用：将文件复制到临时目录 (%{buildroot})
-# ------------------------------------------------------------------------------
-%install
-# 清理旧的构建目录
-rm -rf %{buildroot}
-
-# 1. 创建目标目录结构
-# %{_datadir} 通常是 /usr/share
-mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
-
-# 2. 复制文件
-# 使用 cp -p 保留文件时间戳和权限
-cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
-
-
-
-%files
-/opt/%{app_name}
-%{_bindir}/%{fullname}
-%{_datadir}/applications/%{fullname}.desktop
-%{_datadir}/icons/hicolor/128x128/apps/%{fullname}.png
-
-%changelog
-%autochangelog
-
-
-
-
-
-BuildRequires:  git
-BuildRequires:  meson gcc blueprint-compiler desktop-file-utils libappstream-glib
-BuildRequires:  pkgconfig(gtk4) pkgconfig(libadwaita-1) pkgconfig(libsoup-3.0) pkgconfig(json-glib-1.0)
-Requires:       gtk4 libadwaita
 
 %description
 A native tool for browsing, installing, and managing GNOME Shell Extensions.
