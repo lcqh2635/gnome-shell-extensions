@@ -99,7 +99,7 @@ unzip -q -o %{SOURCE0} -d .
 echo "编译阶段：开始编译源代码..."
 cd gnome-shell-screencast-extra-feature-main
 ./build.sh
-unzip %{uuid}-shell-extension.zip -d ..
+unzip %{uuid}.shell-extension.zip -d ..
 cd ..
 rm -rf gnome-shell-screencast-extra-feature-main
 

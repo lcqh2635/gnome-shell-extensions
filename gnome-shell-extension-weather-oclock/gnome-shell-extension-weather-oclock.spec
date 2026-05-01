@@ -90,11 +90,16 @@ Display the current weather inside the pill next to the clock.
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
-# %build - 编译阶段
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
 # 作用：编译源代码
 # ------------------------------------------------------------------------------
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
+echo "编译阶段：开始编译源代码..."
+cd weather-oclock-main
+cp -r -p %{uuid}/* ..
+cd ..
+rm -rf weather-oclock-main
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
@@ -106,7 +111,7 @@ unzip -q -o %{SOURCE0} -d .
 mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
 # 2. 复制所有扩展文件（排除不需要的构建产物）
 # 🔑 关键：从嵌套目录复制，而不是当前目录
-cp -r -p %{uuid}/* %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
+cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 # ✅ 如果有 schemas 目录，编译它
 if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
     glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
