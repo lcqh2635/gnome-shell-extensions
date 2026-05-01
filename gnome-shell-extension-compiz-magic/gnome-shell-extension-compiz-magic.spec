@@ -158,6 +158,7 @@ fi
 # gnome-session-quit --logout
 
     # dnf list gnome-shell-extension*
+    # dnf search gnome-shell-extension
     # gsettings 修改的是当前用户的 GNOME 配置，必须由 桌面用户（而非 root）执行。如果脚本通过 sudo 运行，命令会被忽略
     # gsettings list-schemas
     # gsettings list-schemas | grep 'org.gnome.shell.extensions'

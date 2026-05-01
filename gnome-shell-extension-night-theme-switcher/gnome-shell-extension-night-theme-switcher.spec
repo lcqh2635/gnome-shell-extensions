@@ -76,25 +76,26 @@ Make your GNOME desktop easy on the eye, day and night
 # 作用：解压源码，应用补丁
 # ------------------------------------------------------------------------------
 %prep
-# 在 ~/rpmbuild/BUILD 目录下创建 hidetopbar@mathieu.bidon.ca/ 并进入
+# 在 ~/rpmbuild/BUILD 目录下创建 nightthemeswitcher@romainvigier.fr/ 并进入
 # %{_builddir}		~/rpmbuild/BUILD		RPM 构建的根目录
 # %{buildsubdir}	%{name}-%{version}-build	由 %mkbuilddir 宏设置，用于构建隔离
-# %{uuid}		hidetopbar@mathieu.bidon.ca	你自定义的扩展 UUID
+# %{uuid}		nightthemeswitcher@romainvigier.fr	你自定义的扩展 UUID
 # -c：在当前目录（即 %{_builddir}/%{buildsubdir}）创建新目录 %{uuid}
-# -n "%{uuid}"：指定新目录的名称为 hidetopbar@mathieu.bidon.ca
+# -n "%{uuid}"：指定新目录的名称为 nightthemeswitcher@romainvigier.fr
 # 🔑 关键：-T 跳过 rpmuncompress，避免 tar 误解压 zip
 # 自动 cd：RPM 会自动 cd 进入这个新目录，后续 %build/%install 都在此执行
 %setup -q -c -n "%{uuid}" -T
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
-# 解压后产生嵌套：hidetopbar@mathieu.bidon.ca/hidetopbar-extensions.gnome.org-124/
+# 解压后产生嵌套：nightthemeswitcher@romainvigier.fr/hidetopbar-extensions.gnome.org-124/
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
-# %build - 编译阶段
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
 # 作用：编译源代码
 # ------------------------------------------------------------------------------
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
+echo "编译阶段：开始编译源代码..."
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
