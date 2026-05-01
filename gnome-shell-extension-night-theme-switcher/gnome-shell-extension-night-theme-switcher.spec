@@ -86,7 +86,7 @@ Make your GNOME desktop easy on the eye, day and night
 # 自动 cd：RPM 会自动 cd 进入这个新目录，后续 %build/%install 都在此执行
 %setup -q -c -n "%{uuid}" -T
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
-# 解压后产生嵌套：nightthemeswitcher@romainvigier.fr/hidetopbar-extensions.gnome.org-124/
+# 解压后产生嵌套：nightthemeswitcher@romainvigier.fr/nightthemeswitcher/
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
