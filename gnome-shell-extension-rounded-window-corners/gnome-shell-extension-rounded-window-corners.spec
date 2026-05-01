@@ -52,8 +52,6 @@ BuildRequires:  just
 BuildRequires:  nodejs >= 18
 # npm 包管理器
 BuildRequires:  npm
-# TypeScript 编译器
-BuildRequires:  typescript
 # 系统库与工具
 # glib2-devel: 提供 glib-compile-schemas 工具。
 # 这是必须的，因为我们需要在打包时或安装时编译 GSettings 的 XML 模式文件。

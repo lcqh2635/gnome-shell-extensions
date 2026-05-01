@@ -46,6 +46,10 @@ Source0:        %{url}/archive/refs/heads/master.zip
 # --- 构建依赖 (BuildRequires) 这些是编译或打包过程中需要的工具，用户安装时不需要 ---
 # 📌 规则：依赖声明行（Requires/BuildRequires/Conflicts 等）必须独占一行，不能有任何行内注释
 # 核心构建工具
+# Node.js 运行环境
+BuildRequires:  nodejs >= 18
+# npm 包管理器
+BuildRequires:  npm
 # glib2-devel: 提供 glib-compile-schemas 工具。
 # 这是必须的，因为我们需要在打包时或安装时编译 GSettings 的 XML 模式文件。
 BuildRequires:  glib2-devel

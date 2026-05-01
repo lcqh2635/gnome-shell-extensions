@@ -53,7 +53,7 @@ BuildRequires:  glib2-devel
 BuildRequires:  gettext
 BuildRequires:  unzip
 # 依赖 GNOME Shell 版本 (按需调整)
-BuildRequires:  gnome-shell >= 50
+BuildRequires:  gnome-shell >= 45
 # --- 运行时依赖 (Requires) ---
 Requires:       gnome-shell
 Requires:       glib2
