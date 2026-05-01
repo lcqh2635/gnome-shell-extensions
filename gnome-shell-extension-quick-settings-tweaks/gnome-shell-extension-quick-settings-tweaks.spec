@@ -90,14 +90,18 @@ Let's tweak gnome Quick Settings! You can add Media Controls, Notifications, Vol
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
-# %build - 编译阶段
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
 # 作用：编译源代码
 # ------------------------------------------------------------------------------
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
-# 如果是 C/C++ 项目，这里通常是:
-# %configure
+echo "编译阶段：开始编译源代码..."
+cd compiz-alike-magic-lamp-effect-master
 npm i && ./install.sh create-release
+./zip.sh
+unzip %{uuid}.zip -d ..
+cd ..
+rm -rf compiz-alike-magic-lamp-effect-master
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
