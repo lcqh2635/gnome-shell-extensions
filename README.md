@@ -23,6 +23,29 @@ dnf search gnome-shell-extension
 安装你需要的扩展：
 ```bash
 sudo dnf install gnome-shell-extension-<扩展名>
+
+sudo dnf install -y \
+gnome-shell-extension-add-to-desktop \
+gnome-shell-extension-alphabetical-grid \
+gnome-shell-extension-appmenu-is-back \
+gnome-shell-extension-clipboard-indicator \
+gnome-shell-extension-compiz-magic \
+gnome-shell-extension-coverflow-alt-tab \
+gnome-shell-extension-customize-ibus \
+gnome-shell-extension-ddterm \
+gnome-shell-extension-desktop-icons-ng \
+gnome-shell-extension-disable-unredirect \
+gnome-shell-extension-hide-top-bar \
+gnome-shell-extension-night-theme-switcher \
+gnome-shell-extension-quick-settings-tweaks \
+gnome-shell-extension-rounded-screen-corners \
+gnome-shell-extension-rounded-window-corners \
+gnome-shell-extension-screencast-extra-feature \
+gnome-shell-extension-search-light \
+gnome-shell-extension-status-area-horizontal-spacing \
+gnome-shell-extension-top-bar-organizer \
+gnome-shell-extension-vitals \
+gnome-shell-extension-weather-oclock
 ```
 
 **4. 管理与配置**
