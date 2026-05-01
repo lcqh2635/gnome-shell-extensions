@@ -14,7 +14,7 @@
 # 禁用默认的 debuginfo 包生成，因为扩展通常不需要调试符号
 %global debug_package %{nil}
 # 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
-%global uuid Rounded_Corners@lennart-k
+%global uuid quick-settings-tweaks@qwreey
 
 # ==============================================================================
 # 2. 包基本信息 (Header)
@@ -76,17 +76,17 @@ Let's tweak gnome Quick Settings! You can add Media Controls, Notifications, Vol
 # 作用：解压源码，应用补丁
 # ------------------------------------------------------------------------------
 %prep
-# 在 ~/rpmbuild/BUILD 目录下创建 hidetopbar@mathieu.bidon.ca/ 并进入
+# 在 ~/rpmbuild/BUILD 目录下创建 quick-settings-tweaks@qwreey/ 并进入
 # %{_builddir}		~/rpmbuild/BUILD		RPM 构建的根目录
 # %{buildsubdir}	%{name}-%{version}-build	由 %mkbuilddir 宏设置，用于构建隔离
-# %{uuid}		hidetopbar@mathieu.bidon.ca	你自定义的扩展 UUID
+# %{uuid}		quick-settings-tweaks@qwreey	你自定义的扩展 UUID
 # -c：在当前目录（即 %{_builddir}/%{buildsubdir}）创建新目录 %{uuid}
-# -n "%{uuid}"：指定新目录的名称为 hidetopbar@mathieu.bidon.ca
+# -n "%{uuid}"：指定新目录的名称为 quick-settings-tweaks@qwreey
 # 🔑 关键：-T 跳过 rpmuncompress，避免 tar 误解压 zip
 # 自动 cd：RPM 会自动 cd 进入这个新目录，后续 %build/%install 都在此执行
 %setup -q -c -n "%{uuid}" -T
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
-# 解压后产生嵌套：hidetopbar@mathieu.bidon.ca/hidetopbar-extensions.gnome.org-124/
+# 解压后产生嵌套：quick-settings-tweaks@qwreey/quick-settings-tweaks-master/
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
@@ -96,12 +96,11 @@ unzip -q -o %{SOURCE0} -d .
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
 echo "编译阶段：开始编译源代码..."
-cd compiz-alike-magic-lamp-effect-master
+cd quick-settings-tweaks-master
 npm i && ./install.sh create-release
-./zip.sh
-unzip %{uuid}.zip -d ..
+unzip target/quick-settings-tweaks@qwreey.shell-extension.zip -d ..
 cd ..
-rm -rf compiz-alike-magic-lamp-effect-master
+rm -rf quick-settings-tweaks-master
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
@@ -162,5 +161,5 @@ fi
     # nautilus admin:/usr/share/gnome-shell/extensions
 
 # 启用扩展（需重启 GNOME Shell 或按 Alt+F2 输入 'r'）
-# gnome-extensions enable add-to-desktop@tommimon.github.com
+# gnome-extensions enable quick-settings-tweaks@qwreey
 # ==============================================================================
