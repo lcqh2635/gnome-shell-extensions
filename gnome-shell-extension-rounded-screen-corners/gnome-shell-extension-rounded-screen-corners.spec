@@ -52,6 +52,7 @@ BuildRequires:  glib2-devel
 # 处理 .po/.mo 翻译文件
 BuildRequires:  gettext
 BuildRequires:  unzip
+BuildRequires:  make
 # 依赖 GNOME Shell 版本 (按需调整)
 BuildRequires:  gnome-shell >= 45
 # --- 运行时依赖 (Requires) ---
