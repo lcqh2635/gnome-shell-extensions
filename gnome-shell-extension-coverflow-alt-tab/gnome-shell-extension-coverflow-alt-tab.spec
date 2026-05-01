@@ -55,7 +55,7 @@ BuildRequires:  glib2-devel
 # BuildRequires:  gnome-shell-devel
 # --- 运行依赖 (Requires) 用户安装此包时必须存在的软件 ---
 # 扩展要求 GNOME Shell 45+ 版本（与 extension metadata 保持一致）✅ 建议匹配扩展实际支持的最低版本
-Requires:       gnome-shell >= 50
+Requires:       gnome-shell >= 45
 # --- 推荐依赖 (Recommends) 非强制，但强烈建议安装以获得完整功能 ---
 # libgda-sqlite: Copyous 使用 SQLite 数据库存储剪贴板历史。
 # 如果没有这个，扩展可能无法保存数据。使用 Recommends 而非 Requires 可以
