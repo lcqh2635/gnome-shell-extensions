@@ -111,6 +111,7 @@ cp -r -p Customize-IBus-main/%{uuid}/* \
 # ✅ 如果有 schemas 目录，编译它
 if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
     glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
+    /usr/share/glib-2.0/schemas/
 fi
 
 # ==============================================================================
