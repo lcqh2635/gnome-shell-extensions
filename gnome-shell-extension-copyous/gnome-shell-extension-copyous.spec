@@ -163,3 +163,46 @@ fi
 
 %changelog
 %autochangelog
+
+# ==============================================================================
+# 1. 将 spec 文件放到正确位置
+# cp gnome-shell-extension-copyous.spec ~/rpmbuild/SPECS/
+# 2. 进入 SPECS 目录
+# cd ~/rpmbuild/SPECS/
+# 🔍 检查 spec 语法
+# rpmlint ~/rpmbuild/SPECS/gnome-shell-extension-copyous.spec
+# 3. 下载源码到 SOURCES（spectool 会自动处理 Source0/1/2）
+# spectool -g -R gnome-shell-extension-copyous.spec
+# ✅ 验证源码是否下载成功
+# ls -lh ~/rpmbuild/SOURCES/ | grep add-to-desktop
+# 4. 生成 SRPM（源码 RPM）
+# rpmbuild -bs gnome-shell-extension-copyous.spec
+# ✅ 查看生成的 SRPM
+# ls -lh ~/rpmbuild/SRPMS/
+# 输出示例: gnome-shell-extension-copyous-16-1.fc44.src.rpm
+# 5. 直接生成本地 RPM
+# rpmbuild -bb gnome-shell-extension-copyous.spec
+# 或者将 .src.rpm 源码包编译成 .rpm 安装包
+# rpmbuild --rebuild ~/rpmbuild/SRPMS/gnome-shell-extension-copyous-16-1.fc44.src.rpm
+# 生成的 RPM 位置
+# ls -lh ~/rpmbuild/RPMS/noarch/
+# 输出: gnome-shell-extension-copyous-16-1.fc44.noarch.rpm
+# 安装测试
+# sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-copyous-2.0.1-1.fc44.noarch.rpm
+# sudo dnf remove -y gnome-shell-extension-copyous
+# gnome-session-quit --logout
+
+    # dnf list gnome-shell-extension*
+    # gsettings 修改的是当前用户的 GNOME 配置，必须由 桌面用户（而非 root）执行。如果脚本通过 sudo 运行，命令会被忽略
+    # gsettings list-schemas
+    # gsettings list-schemas | grep 'org.gnome.shell.extensions'
+    # gsettings list-recursively org.gnome.desktop.interface
+    # 列出所有系统级扩展
+    # gnome-extensions list --system
+    # 查看所有系统级扩展的文件目录
+    # nautilus admin:/usr/share/gnome-shell/extensions
+    # nautilus admin:/usr/share/glib-2.0/schemas
+
+# 启用扩展（需重启 GNOME Shell 或按 Alt+F2 输入 'r'）
+# gnome-extensions enable add-to-desktop@tommimon.github.com
+# ==============================================================================

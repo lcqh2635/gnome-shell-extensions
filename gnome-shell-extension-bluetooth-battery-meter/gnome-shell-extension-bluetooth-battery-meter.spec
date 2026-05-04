@@ -4,8 +4,8 @@
 # 工作流适配：Version 更新后，Source0 自动指向 v{version} 对应的归档
 # Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/architektapx/zen-browser/
 # 参考文件 https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
-# 源代码仓库 https://github.com/CleoMenezesJr/weather-oclock
-# git clone --depth=1 https://github.com/CleoMenezesJr/weather-oclock.git
+# 源代码仓库 https://github.com/maniacx/Bluetooth-Battery-Meter
+# git clone --depth=1 https://github.com/maniacx/Bluetooth-Battery-Meter.git
 # ==============================================================================
 
 # ==============================================================================
@@ -14,7 +14,7 @@
 # 禁用默认的 debuginfo 包生成，因为扩展通常不需要调试符号
 %global debug_package %{nil}
 # 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
-%global uuid weatheroclock@CleoMenezesJr.github.io
+%global uuid Bluetooth-Battery-Meter@maniacx.github.com
 
 # ==============================================================================
 # 2. 包基本信息 (Header)
@@ -23,7 +23,7 @@
 Name:           gnome-shell-extension-bluetooth-battery-meter
 # 版本号。
 # 建议通过自动化工具（如 Renovate）管理，保持与 GitHub Release 同步。
-Version:        50.2
+Version:        50
 # 发布版本。
 # 每次修改 Spec 文件但未升级软件版本时，递增此数字。
 Release:        1%{?dist}
@@ -112,9 +112,28 @@ mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
 # 2. 复制所有扩展文件（排除不需要的构建产物）
 # 🔑 关键：从嵌套目录复制，而不是当前目录
 cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
-# ✅ 如果有 schemas 目录，编译它
+# 3. 【新增】将 schema 文件也安装到全局标准路径（供 gsettings 命令识别）
+if [ -f %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.gschema.xml ]; then
+    mkdir -p %{buildroot}%{_datadir}/glib-2.0/schemas/
+    # 将扩展 Schema 注册到全局缓存目录 /usr/share/glib-2.0/schemas
+    cp %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.gschema.xml \
+       %{buildroot}%{_datadir}/glib-2.0/schemas/
+fi
+# 4. 编译扩展目录内的 schema（供扩展运行时使用）
 if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
     glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
+fi
+
+# %post: 首次安装后更新全局 schema 缓存
+%post
+if [ $1 -eq 1 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
+fi
+
+# %postun: 完全卸载（非升级）后更新全局 schema 缓存
+%postun
+if [ $1 -eq 0 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 fi
 
 # ==============================================================================

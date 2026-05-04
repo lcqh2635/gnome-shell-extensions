@@ -96,9 +96,28 @@ unzip -q -o %{SOURCE0} -d .
 mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
 # 2. 复制所有扩展文件（排除不需要的构建产物）
 cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
-# ✅ 如果有 schemas 目录，编译它
+# 3. 【新增】将 schema 文件也安装到全局标准路径（供 gsettings 命令识别）
+if [ -f %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.gschema.xml ]; then
+    mkdir -p %{buildroot}%{_datadir}/glib-2.0/schemas/
+    # 将扩展 Schema 注册到全局缓存目录 /usr/share/glib-2.0/schemas
+    cp %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.gschema.xml \
+       %{buildroot}%{_datadir}/glib-2.0/schemas/
+fi
+# 4. 编译扩展目录内的 schema（供扩展运行时使用）
 if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
     glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
+fi
+
+# %post: 首次安装后更新全局 schema 缓存
+%post
+if [ $1 -eq 1 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
+fi
+
+# %postun: 完全卸载（非升级）后更新全局 schema 缓存
+%postun
+if [ $1 -eq 0 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 fi
 
 # ==============================================================================
