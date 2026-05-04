@@ -1,8 +1,14 @@
-# Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/gierth/tools-misc/
-# 参考文件 https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
+# ==============================================================================
+# 场景二：上游提供源码压缩包（标准源码构建）
+# 适用条件：GitHub Releases 提供 .tar.gz / .zip 源码包
+# 工作流适配：Version 更新后，Source0 自动指向 v{version} 对应的归档
+# Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/architektapx/zen-browser/
+# 参考 spec 文件：
+# https://github.com/openSUSE/Customize-IBus/blob/main/gnome-shell-extension-customize-ibus.spec
+# https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
 # 源代码仓库 https://github.com/boerdereinar/copyous
 # git clone --depth=1 https://github.com/boerdereinar/copyous.git
-
+# ==============================================================================
 
 # ==============================================================================
 # 1. 宏定义与全局设置
@@ -11,7 +17,6 @@
 %global debug_package %{nil}
 # 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
 %global uuid copyous@boerdereinar.dev
-
 
 # ==============================================================================
 # 2. 包基本信息 (Header)
@@ -34,9 +39,6 @@ URL:            https://github.com/boerdereinar/copyous
 # 方式1：指向 Release (推荐)
 # 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
 Source0:        %{url}/releases/download/v%{version}/%{uuid}.zip
-# 方式2：使用本地克隆目录打包（用于测试）
-# Source0: %{name}-%{version}.tar.gz
-
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)

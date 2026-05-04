@@ -3,7 +3,9 @@
 # 适用条件：GitHub Releases 提供 .tar.gz / .zip 源码包
 # 工作流适配：Version 更新后，Source0 自动指向 v{version} 对应的归档
 # Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/architektapx/zen-browser/
-# 参考文件 https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
+# 参考 spec 文件：
+# https://github.com/openSUSE/Customize-IBus/blob/main/gnome-shell-extension-customize-ibus.spec
+# https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
 # 源代码仓库 https://github.com/openSUSE/Customize-IBus
 # git clone --depth=1 https://github.com/openSUSE/Customize-IBus.git
 # ==============================================================================
@@ -96,6 +98,15 @@ Copyous 是一个专为 GNOME 桌面设计的现代化剪贴板管理器。
 unzip -q -o %{SOURCE0} -d .
 
 # ------------------------------------------------------------------------------
+# %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
+# 作用：编译源代码
+# ------------------------------------------------------------------------------
+%build
+# 对于 GNOME 扩展（纯 JS），通常不需要编译
+echo "编译阶段：开始编译源代码..."
+gmake install
+
+# ------------------------------------------------------------------------------
 # %install - 安装阶段
 # 作用：将文件复制到临时目录 (%{buildroot})
 # ------------------------------------------------------------------------------
@@ -104,21 +115,43 @@ unzip -q -o %{SOURCE0} -d .
 # %{_datadir} 通常是 /usr/share
 mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
 # 2. 复制所有扩展文件（排除不需要的构建产物）
-# cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 # 🔑 关键：从嵌套目录复制，而不是当前目录
-cp -r -p Customize-IBus-main/%{uuid}/* \
-  %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
-# ✅ 如果有 schemas 目录，编译它
+cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
+# 3. 【新增】将 schema 文件也安装到全局标准路径（供 gsettings 命令识别）
+if [ -f %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.gschema.xml ]; then
+    mkdir -p %{buildroot}%{_datadir}/glib-2.0/schemas/
+    # 将扩展 Schema 注册到全局缓存目录 /usr/share/glib-2.0/schemas
+    cp %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.gschema.xml \
+       %{buildroot}%{_datadir}/glib-2.0/schemas/
+fi
+# 4. 编译扩展目录内的 schema（供扩展运行时使用）
 if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
     glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
-    /usr/share/glib-2.0/schemas/
+fi
+
+# %post: 首次安装后更新全局 schema 缓存
+%post
+if [ $1 -eq 1 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
+fi
+
+# %postun: 完全卸载（非升级）后更新全局 schema 缓存
+%postun
+if [ $1 -eq 0 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
 fi
 
 # ==============================================================================
 # 5. 文件列表 (%files)
+# 💡 RPM 打包原则：任何进入 %{buildroot} 的文件，必须在 %files 中显式声明，否则构建失败。
 # ==============================================================================
 %files
-%{_datadir}/gnome-shell/extensions/%{uuid}
+# --- 1. GNOME Shell 扩展主目录 ---
+%dir %{_datadir}/gnome-shell/extensions/%{uuid}
+%{_datadir}/gnome-shell/extensions/%{uuid}/*
+# --- 2. 【新增】全局 GSettings Schema 文件 ---
+# 注意：只声明 .gschema.xml 源文件，不要声明 gschemas.compiled（它是运行时生成的）
+%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.logo-menu.gschema.xml
 
 %changelog
 %autochangelog

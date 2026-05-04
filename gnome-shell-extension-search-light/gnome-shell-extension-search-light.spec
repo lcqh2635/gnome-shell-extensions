@@ -3,7 +3,9 @@
 # 适用条件：GitHub Releases 提供 .tar.gz / .zip 源码包
 # 工作流适配：Version 更新后，Source0 自动指向 v{version} 对应的归档
 # Fedora Copr 仓库 https://copr.fedorainfracloud.org/coprs/architektapx/zen-browser/
-# 参考文件 https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
+# 参考 spec 文件：
+# https://github.com/openSUSE/Customize-IBus/blob/main/gnome-shell-extension-customize-ibus.spec
+# https://github.com/lukasgierth/fedora-packages/blob/main/tools-misc/gnome-shell-extension-copyous/gnome-shell-extension-copyous.spec
 # 源代码仓库 https://github.com/icedman/search-light
 # git clone --depth=1 https://github.com/icedman/search-light.git
 # ==============================================================================
