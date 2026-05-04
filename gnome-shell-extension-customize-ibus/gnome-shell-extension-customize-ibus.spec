@@ -150,8 +150,8 @@ fi
 %dir %{_datadir}/gnome-shell/extensions/%{uuid}
 %{_datadir}/gnome-shell/extensions/%{uuid}/*
 # --- 2. 【新增】全局 GSettings Schema 文件 ---
-# 注意：只声明 .gschema.xml 源文件，不要声明 gschemas.compiled（它是运行时生成的）
-%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.logo-menu.gschema.xml
+# 【通用声明】匹配标准 GNOME 扩展命名空间的所有 schema 文件
+%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.*.gschema.xml
 
 %changelog
 %autochangelog
@@ -180,7 +180,7 @@ fi
 # ls -lh ~/rpmbuild/RPMS/noarch/
 # 输出: gnome-shell-extension-add-to-desktop-16-1.fc44.noarch.rpm
 # 安装测试
-# sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-customize-ibus-50-1.fc44.noarch.rpm
+# sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-customize-ibus-86-0.noarch.rpm
 # sudo dnf remove -y gnome-shell-extension-customize-ibus
 # gnome-session-quit --logout
 

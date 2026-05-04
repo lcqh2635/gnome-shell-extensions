@@ -127,9 +127,15 @@ fi
 
 # ==============================================================================
 # 5. 文件列表 (%files)
+# 💡 RPM 打包原则：任何进入 %{buildroot} 的文件，必须在 %files 中显式声明，否则构建失败。
 # ==============================================================================
 %files
-%{_datadir}/gnome-shell/extensions/%{uuid}
+# --- 1. GNOME Shell 扩展主目录 ---
+%dir %{_datadir}/gnome-shell/extensions/%{uuid}
+%{_datadir}/gnome-shell/extensions/%{uuid}/*
+# --- 2. 【新增】全局 GSettings Schema 文件 ---
+# 【通用声明】匹配标准 GNOME 扩展命名空间的所有 schema 文件
+%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.*.gschema.xml
 
 %changelog
 %autochangelog

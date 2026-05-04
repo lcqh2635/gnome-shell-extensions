@@ -143,8 +143,8 @@ fi
 %dir %{_datadir}/gnome-shell/extensions/%{uuid}
 %{_datadir}/gnome-shell/extensions/%{uuid}/*
 # --- 2. 【新增】全局 GSettings Schema 文件 ---
-# 注意：只声明 .gschema.xml 源文件，不要声明 gschemas.compiled（它是运行时生成的）
-%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.logo-menu.gschema.xml
+# 【通用声明】匹配标准 GNOME 扩展命名空间的所有 schema 文件
+%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.*.gschema.xml
 
 %changelog
 %autochangelog
@@ -180,6 +180,7 @@ fi
     # gsettings list-recursively org.gnome.desktop.interface
     # 列出所有系统级扩展
     # gnome-extensions list --system
+    # ls /usr/share/glib-2.0/schemas | grep 'org.gnome.shell.extensions'
     # 查看所有系统级扩展的文件目录
     # nautilus admin:/usr/share/gnome-shell/extensions
 
