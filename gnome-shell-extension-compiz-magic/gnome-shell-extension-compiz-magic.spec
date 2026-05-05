@@ -13,9 +13,14 @@
 # ==============================================================================
 # 1. 宏定义与全局设置
 # ==============================================================================
-# 禁用默认的 debuginfo 包生成，因为扩展通常不需要调试符号
-%global debug_package %{nil}
-# 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
+# 项目名称
+%global projectname compiz-alike-magic-lamp-effect
+# 指定源码 commit（确保构建可复现）
+# 上游已经在更新仓库源代码，只是没有用 GitHub Releases 的情况下，使用 commit snapshot（Fedora 官方推荐）
+# https://github.com/hermes83/compiz-alike-magic-lamp-effect/commits/master/
+%global commit eb2aff167146b0a9eca780ad0fe30eafaab3a26f
+%global shortcommit %(c=%{commit}; echo ${c:0:7})
+# 扩展 UUID（必须与 metadata.json 一致）
 %global uuid compiz-alike-magic-lamp-effect@hermes83.github.com
 
 # ==============================================================================
@@ -25,54 +30,41 @@
 Name:           gnome-shell-extension-compiz-magic
 # 版本号。
 # 建议通过自动化工具（如 Renovate）管理，保持与 GitHub Release 同步。
-Version:        50
+Version:        25
 # 发布版本。
 # 每次修改 Spec 文件但未升级软件版本时，递增此数字。
-Release:        1%{?dist}
+Release: 	1.git%{shortcommit}%{?dist}
 # 简短描述。出现在软件中心的列表中。
 Summary:        Compiz alike magic lamp effect for GNOME Shell
 # 许可证类型。必须与源码中的 LICENSE 文件一致。
 License:        GPL-3.0-or-later
 # 项目主页 URL。
 URL:            https://github.com/hermes83/compiz-alike-magic-lamp-effect
-# 源代码压缩包。可以指向 GitHub 的 Release 或直接使用克隆的源码
-# 方式1：指向 Release (推荐)
-# 这里假设源码是以 Zip 包形式发布，且文件名包含 UUID
-# 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
-# https://github.com/hermes83/compiz-alike-magic-lamp-effect/archive/refs/heads/master.zip
-Source0:        %{url}/archive/refs/heads/master.zip
+# 源代码压缩包。可以指向 GitHub 的 Release 或使用 commit snapshot 提供的压缩包
+# 方式1：使用 Release 中的 tag (优先选择)
+# 方式2：如果仓库没有发布 Release 或者 Release 太老不更新了，则使用 commit snapshot 提供的压缩包
+Source0: 	%{url}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
+# 架构，noarch 表示此包不包含任何与 CPU 架构相关的二进制文件，它可以在 x86_64, aarch64 等任何架构上运行。
+BuildArch:      noarch
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
 # ==============================================================================
-# --- 构建依赖 (BuildRequires) 这些是编译或打包过程中需要的工具，用户安装时不需要 ---
+# 构建依赖（用于 schema 处理）
+# glib2: 提供 glib-compile-schemas 工具
 # 📌 规则：依赖声明行（Requires/BuildRequires/Conflicts 等）必须独占一行，不能有任何行内注释
-# ⚠️ 移除不必要的编译依赖！纯 JS 扩展只需要解压+复制
-BuildRequires:  unzip
-# glib2-devel: 提供 glib-compile-schemas 工具。
-# 这是必须的，因为我们需要在打包时或安装时编译 GSettings 的 XML 模式文件。
-BuildRequires:  glib2-devel
-# gnome-shell-devel: 提供 GNOME Shell 的开发宏和头文件。
-# 虽然不是所有扩展都严格需要，但加上它可以确保环境一致性。
-# BuildRequires:  gnome-shell-devel
-# --- 运行依赖 (Requires) 用户安装此包时必须存在的软件 ---
-# 扩展要求 GNOME Shell 45+ 版本（与 extension metadata 保持一致）✅ 建议匹配扩展实际支持的最低版本
+BuildRequires:  glib2
+# 运行依赖（必须与 metadata.json 中 shell-version 对齐）
 Requires:       gnome-shell >= 45
-# --- 推荐依赖 (Recommends) 非强制，但强烈建议安装以获得完整功能 ---
-# libgda-sqlite: Copyous 使用 SQLite 数据库存储剪贴板历史。
-# 如果没有这个，扩展可能无法保存数据。使用 Recommends 而非 Requires 可以
-# 避免在某些最小化安装环境中产生冲突。
-# Recommends:     libgda-sqlite
-# --- 架构 ---
-# noarch 表示此包不包含任何与 CPU 架构相关的二进制文件（如 C 编译的程序）。
-# 它可以在 x86_64, aarch64 等任何架构上运行。
-BuildArch:      noarch
+# scriptlet 依赖（用于 glib schema 编译）
+Requires(post): glib2
+Requires(postun): glib2
 
 # ==============================================================================
 # 4. 描述信息
 # ==============================================================================
 %description
-Compiz alike magic lamp effect for GNOME Shell
+This extension adds a Compiz-like magic lamp minimize effect to GNOME Shell.
 
 # ==============================================================================
 # 3. 构建阶段 (Build Stages)
@@ -89,10 +81,9 @@ Compiz alike magic lamp effect for GNOME Shell
 # -c：在当前目录（即 %{_builddir}/%{buildsubdir}）创建新目录 %{uuid}
 # -n "%{uuid}"：指定新目录的名称为 compiz-alike-magic-lamp-effect@hermes83.github.com
 # 自动 cd：RPM 会自动 cd 进入这个新目录，后续 %build/%install 都在此执行
-%setup -q -c -n "%{uuid}"
-# 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
-# 解压后产生嵌套：compiz-alike-magic-lamp-effect@hermes83.github.com/compiz-alike-magic-lamp-effect-master/
-unzip -q -o %{SOURCE0} -d .
+
+# 自动解压 tar.gz，并进入源码目录
+%autosetup -n %{projectname}-%{commit}
 
 # ------------------------------------------------------------------------------
 # %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
@@ -101,11 +92,6 @@ unzip -q -o %{SOURCE0} -d .
 %build
 # 对于 GNOME 扩展（纯 JS），通常不需要编译
 echo "编译阶段：开始编译源代码..."
-cd compiz-alike-magic-lamp-effect-master
-./zip.sh
-unzip %{uuid}.zip -d ..
-cd ..
-rm -rf compiz-alike-magic-lamp-effect-master
 
 # ------------------------------------------------------------------------------
 # %install - 安装阶段
@@ -113,26 +99,31 @@ rm -rf compiz-alike-magic-lamp-effect-master
 # ------------------------------------------------------------------------------
 %install
 # 1. 创建扩展安装目录
-# %{_datadir} 通常是 /usr/share
-mkdir -p %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
-# 2. 复制所有扩展文件（排除不需要的构建产物）
-cp -r -p * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
-# ✅ 如果有 schemas 目录，编译它
-if [ -d %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas ]; then
-    glib-compile-schemas %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schemas
-fi
+install -dm 0755 %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
+# 拷贝扩展文件
+cp -a * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
+
+# ==============================================================================
+# 4. 脚本阶段 (Scriptlets)
+# ==============================================================================
+# %post - 安装后脚本
+# 用户执行 dnf install 后运行
+%post
+%glib2_schemas_post
+
+# %postun - 卸载后脚本
+%postun
+%glib2_schemas_postun
 
 # ==============================================================================
 # 5. 文件列表 (%files)
 # 💡 RPM 打包原则：任何进入 %{buildroot} 的文件，必须在 %files 中显式声明，否则构建失败。
 # ==============================================================================
 %files
-# --- 1. GNOME Shell 扩展主目录 ---
-%dir %{_datadir}/gnome-shell/extensions/%{uuid}
-%{_datadir}/gnome-shell/extensions/%{uuid}/*
-# --- 2. 【新增】全局 GSettings Schema 文件 ---
-# 【通用声明】匹配标准 GNOME 扩展命名空间的所有 schema 文件
-%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.*.gschema.xml
+# 扩展目录
+%{_datadir}/gnome-shell/extensions/%{uuid}
+# schema 文件（精确匹配）
+%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.xml
 
 %changelog
 %autochangelog
@@ -144,39 +135,38 @@ fi
 # cd ~/rpmbuild/SPECS/
 # 🔍 检查 spec 语法
 # rpmlint ~/rpmbuild/SPECS/gnome-shell-extension-compiz-magic.spec
-# 3. 下载源码到 SOURCES（spectool 会自动处理 Source0/1/2）
+# 3. 下载源码到 SOURCES（spectool 会自动处理 Source0/1/2）源码存放目录为 ~/rpmbuild/SOURCES/
 # spectool -g -R gnome-shell-extension-compiz-magic.spec
 # ✅ 验证源码是否下载成功
-# ls -lh ~/rpmbuild/SOURCES/ | grep add-to-desktop
+# ls -lh ~/rpmbuild/SOURCES/ | grep master.zip
 # 4. 生成 SRPM（源码 RPM）
 # rpmbuild -bs gnome-shell-extension-compiz-magic.spec
 # ✅ 查看生成的 SRPM
 # ls -lh ~/rpmbuild/SRPMS/
-# 输出示例: gnome-shell-extension-add-to-desktop-16-1.fc44.src.rpm
+# 输出示例: gnome-shell-extension-compiz-magic-*.fc44.src.rpm
 # 5. 直接生成本地 RPM
 # rpmbuild -bb gnome-shell-extension-compiz-magic.spec
 # 或者将 .src.rpm 源码包编译成 .rpm 安装包
-# rpmbuild --rebuild ~/rpmbuild/SRPMS/gnome-shell-extension-add-to-desktop-16-1.fc44.src.rpm
+# rpmbuild --rebuild ~/rpmbuild/SRPMS/gnome-shell-extension-compiz-magic-*.fc44.src.rpm
 # 生成的 RPM 位置
 # ls -lh ~/rpmbuild/RPMS/noarch/
-# 输出: gnome-shell-extension-add-to-desktop-16-1.fc44.noarch.rpm
+# 输出: gnome-shell-extension-compiz-magic-*.fc44.noarch.rpm
 # 安装测试
-# sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-compiz-magic-25-1.fc44.noarch.rpm
-# sudo dnf remove -y gnome-shell-extension-add-to-desktop
+# sudo dnf install -y ~/rpmbuild/RPMS/noarch/gnome-shell-extension-compiz-magic-*.fc44.noarch.rpm
+# sudo dnf remove -y gnome-shell-extension-compiz-magic
+# dnf list gnome-shell-extension-compiz-magic
+# dnf search gnome-shell-extension-compiz-magic
 # gnome-session-quit --logout
-
-    # dnf list gnome-shell-extension*
-    # dnf search gnome-shell-extension
-    # gsettings 修改的是当前用户的 GNOME 配置，必须由 桌面用户（而非 root）执行。如果脚本通过 sudo 运行，命令会被忽略
-    # gsettings list-schemas
-    # gsettings list-schemas | grep 'org.gnome.shell.extensions'
-    # gsettings list-recursively org.gnome.desktop.interface
-    # 列出所有系统级扩展
-    # gnome-extensions list --system
-    # ls /usr/share/glib-2.0/schemas | grep 'org.gnome.shell.extensions'
-    # 查看所有系统级扩展的文件目录
-    # nautilus admin:/usr/share/gnome-shell/extensions
-
 # 启用扩展（需重启 GNOME Shell 或按 Alt+F2 输入 'r'）
-# gnome-extensions enable add-to-desktop@tommimon.github.com
+# gnome-extensions enable compiz-alike-magic-lamp-effect@hermes83.github.com
+
+# 列出所有系统级扩展
+# gnome-extensions list --system
+# ls /usr/share/glib-2.0/schemas | grep 'org.gnome.shell.extensions'
+# 查看所有系统级扩展的文件目录
+# nautilus admin:/usr/share/gnome-shell/extensions
+# gsettings 修改的是当前用户的 GNOME 配置，必须由 桌面用户（而非 root）执行。如果脚本通过 sudo 运行，命令会被忽略
+# gsettings list-schemas | grep 'org.gnome.shell.extensions'
+# gsettings list-recursively org.gnome.shell.extensions.com.github.hermes83.compiz-alike-magic-lamp-effect
+# gsettings reset-recursively org.gnome.shell.extensions.com.github.hermes83.compiz-alike-magic-lamp-effect
 # ==============================================================================
