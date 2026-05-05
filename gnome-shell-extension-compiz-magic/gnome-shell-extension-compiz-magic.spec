@@ -84,6 +84,8 @@ This extension adds a Compiz-like magic lamp minimize effect to GNOME Shell.
 
 # 自动解压 tar.gz，并进入源码目录
 %autosetup -n %{projectname}-%{commit}
+# 删除无关文件和目录（上游打包脚本不应使用）
+rm -rf assets/ README.md install.sh zip.sh
 
 # ------------------------------------------------------------------------------
 # %build - 编译阶段。在 ~/rpmbuild/BUILD/%{uuid} 目录下执行
@@ -98,9 +100,9 @@ echo "编译阶段：开始编译源代码..."
 # 作用：将文件复制到临时目录 (%{buildroot})
 # ------------------------------------------------------------------------------
 %install
-# 1. 创建扩展安装目录
+# 创建扩展安装目录
 install -dm 0755 %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
-# 拷贝扩展文件
+# 拷贝运行时必要文件（避免带入无关文件）
 cp -a * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 
 # ==============================================================================
@@ -109,11 +111,15 @@ cp -a * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 # %post - 安装后脚本
 # 用户执行 dnf install 后运行
 %post
-%glib2_schemas_post
+if [ $1 -eq 1 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
+fi
 
 # %postun - 卸载后脚本
 %postun
-%glib2_schemas_postun
+if [ $1 -eq 0 ]; then
+    glib-compile-schemas %{_datadir}/glib-2.0/schemas &> /dev/null || :
+fi
 
 # ==============================================================================
 # 5. 文件列表 (%files)
@@ -122,8 +128,8 @@ cp -a * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 %files
 # 扩展目录
 %{_datadir}/gnome-shell/extensions/%{uuid}
-# schema 文件（精确匹配）
-%{_datadir}/gnome-shell/extensions/%{uuid}/schemas/*.xml
+# 许可证（如果存在）
+%license LICENSE
 
 %changelog
 %autochangelog
