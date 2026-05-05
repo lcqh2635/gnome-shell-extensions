@@ -104,6 +104,14 @@ echo "编译阶段：开始编译源代码..."
 install -dm 0755 %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}
 # 拷贝运行时必要文件（避免带入无关文件）
 cp -a * %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
+# 额外检查 schema 是否真的安装到了系统目录
+# ls /usr/share/glib-2.0/schemas | grep compiz
+if [ -d schemas ]; then
+    # 先创建目录
+    install -dm0755 %{buildroot}%{_datadir}/glib-2.0/schemas
+    # 再安装文件
+    install -m0644 schemas/*.xml %{buildroot}%{_datadir}/glib-2.0/schemas/
+fi
 
 # ==============================================================================
 # 4. 脚本阶段 (Scriptlets)
@@ -128,6 +136,7 @@ fi
 %files
 # 扩展目录
 %{_datadir}/gnome-shell/extensions/%{uuid}
+%{_datadir}/glib-2.0/schemas/org.gnome.shell.extensions.com.github.hermes83.compiz-alike-magic-lamp-effect.gschema.xml
 # 许可证（如果存在）
 %license LICENSE
 
