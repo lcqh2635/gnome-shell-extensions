@@ -40,6 +40,7 @@ Summary:        Compiz alike magic lamp effect for GNOME Shell
 License:        GPL-3.0-or-later
 # 项目主页 URL。
 URL:            https://github.com/hermes83/compiz-alike-magic-lamp-effect
+# Release > Tag > Commit snapshot > 仓库直接源码
 # 源代码压缩包。可以指向 GitHub 的 Release 或使用 commit snapshot 提供的压缩包
 # 方式1：使用 Release 中的 tag (优先选择)
 # 方式2：如果仓库没有发布 Release 或者 Release 太老不更新了，则使用 commit snapshot 提供的压缩包
@@ -74,15 +75,13 @@ This extension adds a Compiz-like magic lamp minimize effect to GNOME Shell.
 # 作用：解压源码，应用补丁
 # ------------------------------------------------------------------------------
 %prep
-# 在 ~/rpmbuild/BUILD 目录下创建 compiz-alike-magic-lamp-effect@hermes83.github.com/ 并进入
+# 在 ~/rpmbuild/BUILD 目录下创建 gnome-shell-extension-compiz-magic-%{version}-build 并进入
 # %{_builddir}		~/rpmbuild/BUILD		RPM 构建的根目录
 # %{buildsubdir}	%{name}-%{version}-build	由 %mkbuilddir 宏设置，用于构建隔离
-# %{uuid}		compiz-alike-magic-lamp-effect@hermes83.github.com	你自定义的扩展 UUID
-# -c：在当前目录（即 %{_builddir}/%{buildsubdir}）创建新目录 %{uuid}
-# -n "%{uuid}"：指定新目录的名称为 compiz-alike-magic-lamp-effect@hermes83.github.com
-# 自动 cd：RPM 会自动 cd 进入这个新目录，后续 %build/%install 都在此执行
-
-# 自动解压 tar.gz，并进入源码目录
+# -n ：指定新目录的名称
+# 自动解压 Source0 指定的 tar.gz 压缩包，并进入 -n 指定的目录，后续 %build/%install 都在此执行
+# 该目录下直接存放解压所的源码文件
+# 可以用 %autosetup ⚠️ 但只有在“tar.gz + 单一顶层目录”时才推荐
 %autosetup -n %{projectname}-%{commit}
 # 删除无关文件和目录（上游打包脚本不应使用）
 rm -rf assets/ README.md install.sh zip.sh

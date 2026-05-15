@@ -13,9 +13,7 @@
 # ==============================================================================
 # 1. 宏定义与全局设置
 # ==============================================================================
-# 禁用默认的 debuginfo 包生成，因为扩展通常不需要调试符号
-%global debug_package %{nil}
-# 定义扩展的 UUID，这是 GNOME Shell 识别扩展的唯一 ID
+# 扩展 UUID（必须与 metadata.json 一致）
 %global uuid add-to-desktop@tommimon.github.com
 
 # ==============================================================================
@@ -41,40 +39,29 @@ URL:            https://github.com/Tommimon/add-to-desktop
 # 源码：zip 包（GNOME 扩展通常是纯脚本，无需编译）
 # https://github.com/Tommimon/add-to-desktop/releases/download/v16/add-to-desktop@tommimon.github.com.v16.shell-extension.zip
 Source0:        %{url}/releases/download/v%{version}/%{uuid}.v%{version}.shell-extension.zip
+# 架构，noarch 表示此包不包含任何与 CPU 架构相关的二进制文件，它可以在 x86_64, aarch64 等任何架构上运行。
+BuildArch:      noarch
 
 # ==============================================================================
 # 3. 依赖关系 (Build & Runtime Requirements)
 # ==============================================================================
-# --- 构建依赖 (BuildRequires) 这些是编译或打包过程中需要的工具，用户安装时不需要 ---
-# 📌 规则：依赖声明行（Requires/BuildRequires/Conflicts 等）必须独占一行，不能有任何行内注释
-# ⚠️ 移除不必要的编译依赖！纯 JS 扩展只需要解压+复制
 BuildRequires:  unzip
-# glib2-devel: 提供 glib-compile-schemas 工具。
-# 这是必须的，因为我们需要在打包时或安装时编译 GSettings 的 XML 模式文件。
-BuildRequires:  glib2-devel
-# gnome-shell-devel: 提供 GNOME Shell 的开发宏和头文件。
-# 虽然不是所有扩展都严格需要，但加上它可以确保环境一致性。
-# BuildRequires:  gnome-shell-devel
-# --- 运行依赖 (Requires) 用户安装此包时必须存在的软件 ---
-# 扩展要求 GNOME Shell 45+ 版本（与 extension metadata 保持一致）✅ 建议匹配扩展实际支持的最低版本
+# 构建依赖（用于 schema 处理）
+# glib2: 提供 glib-compile-schemas 工具
+# 📌 规则：依赖声明行（Requires/BuildRequires/Conflicts 等）必须独占一行，不能有任何行内注释
+BuildRequires:  glib2
+# 运行依赖（必须与 metadata.json 中 shell-version 对齐）
 Requires:       gnome-shell >= 45
-# --- 推荐依赖 (Recommends) 非强制，但强烈建议安装以获得完整功能 ---
-# libgda-sqlite: Copyous 使用 SQLite 数据库存储剪贴板历史。
-# 如果没有这个，扩展可能无法保存数据。使用 Recommends 而非 Requires 可以
-# 避免在某些最小化安装环境中产生冲突。
-# Recommends:     libgda-sqlite
-# --- 架构 ---
-# noarch 表示此包不包含任何与 CPU 架构相关的二进制文件（如 C 编译的程序）。
-# 它可以在 x86_64, aarch64 等任何架构上运行。
-BuildArch:      noarch
+# scriptlet 依赖（用于 glib schema 编译）
+Requires(post): glib2
+Requires(postun): glib2
 
 # ==============================================================================
 # 4. 描述信息
 # ==============================================================================
 %description
-Copyous 是一个专为 GNOME 桌面设计的现代化剪贴板管理器。
-它允许用户保存复制历史，快速搜索并重新粘贴之前的内容，
-极大地提升了办公效率。
+This GNOME Shell extension adds a convenient "Add to Desktop" option
+in the file manager context menu.
 
 # ==============================================================================
 # 3. 构建阶段 (Build Stages)
@@ -84,6 +71,12 @@ Copyous 是一个专为 GNOME 桌面设计的现代化剪贴板管理器。
 # 作用：解压源码，应用补丁
 # ------------------------------------------------------------------------------
 %prep
+# 在 ~/rpmbuild/BUILD 目录下创建 gnome-shell-extension-compiz-magic-%{version}-build 并进入
+# %{_builddir}		~/rpmbuild/BUILD		RPM 构建的根目录
+# %{buildsubdir}	%{name}-%{version}-build	由 %mkbuilddir 宏设置，用于构建隔离
+# -n ：指定新目录的名称
+# 自动解压 Source0 指定的 tar.gz 压缩包，并进入 -n 指定的目录，后续 %build/%install 都在此执行
+# 该目录下直接存放解压所的源码文件
 %setup -q -c -n "%{uuid}"
 # 2. 将扁平压缩包解压到当前目录（即 %{uuid}）
 unzip -q -o %{SOURCE0} -d .
